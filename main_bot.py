@@ -22,7 +22,7 @@ def get_json_from_url(url):
 
 
 def get_updates(offset=None):
-    url = URL + "getUpdates?timeout=100"
+    url = URL + "getUpdates?timeout=2"
     if offset:
         url += "&offset={}".format(offset)
     js = get_json_from_url(url)
@@ -50,15 +50,18 @@ def send_message(text, chat_id):
 
 def echo_all(updates):
     for update in updates["result"]:
-        try:
-            text = update["message"]["text"]
-            chat = update["message"]["chat"]["id"]
-            if "ik ben" in text.lower():
-                matches = re.findall(r'ik ben (\w+)', text.lower)
-                print matches.group(1)
-                send_message(matches.group(1), chat)
-        except Exception as e:
-            print(e)
+        # try:
+        text = update["message"]["text"]
+        chat = update["message"]["chat"]["id"]
+        if "ik ben" in text.lower():
+            matches = re.findall(r'ik ben (\w+)', text.lower())
+            print matches[0]
+            message = "Hoi {}, ik ben Dad Bot".format(matches[0])
+            send_message(message, chat)
+        else:
+            print "matches nothing"
+        # except Exception as e:
+        #     print(e)
 
 
 def main():
