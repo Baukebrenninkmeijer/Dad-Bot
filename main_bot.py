@@ -2,6 +2,7 @@ import json
 import requests
 import time
 import urllib
+import urllib.parse
 import re
 
 
@@ -50,18 +51,19 @@ def send_message(text, chat_id):
 
 def echo_all(updates):
     for update in updates["result"]:
-        # try:
-        text = update["message"]["text"]
-        chat = update["message"]["chat"]["id"]
-        if "ik ben" in text.lower():
-            matches = re.findall(r'ik ben (\w+)', text.lower())
-            print matches[0]
-            message = "Hoi {}, ik ben Dad Bot".format(matches[0])
-            send_message(message, chat)
-        else:
-            print "matches nothing"
-        # except Exception as e:
-        #     print(e)
+        try:
+            text = update["message"]["text"]
+            chat = update["message"]["chat"]["id"]
+            if "ik ben" in text.lower():
+                matches = re.findall(r'ik ben (\w+)', text.lower())
+                print(matches[0])
+                message = "Hoi {}, ik ben Dad Bot".format(matches[0])
+                send_message(message, chat)
+            else:
+                print("matches nothing")
+            # send_message(text, chat)
+        except Exception as e:
+            print(e)
 
 
 def main():
