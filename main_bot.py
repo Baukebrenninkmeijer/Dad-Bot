@@ -6,7 +6,7 @@ import urllib.parse
 import re
 
 
-TOKEN = "590184578:AAEHKlxKJpdeH9bHOtYUiz6YIEADEBNqz6Y"
+TOKEN = open('key.txt', 'r').read()
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 
 
@@ -23,7 +23,7 @@ def get_json_from_url(url):
 
 
 def get_updates(offset=None):
-    url = URL + "getUpdates?timeout=2"
+    url = URL + "getUpdates?timeout=100"
     if offset:
         url += "&offset={}".format(offset)
     js = get_json_from_url(url)
