@@ -4,6 +4,7 @@ import time
 import urllib
 import urllib.parse
 import re
+import pandas
 
 
 TOKEN = open('key.txt', 'r').read()
@@ -54,19 +55,26 @@ def echo_all(updates):
         try:
             text = update["message"]["text"]
             chat = update["message"]["chat"]["id"]
-            if "ik ben" in text.lower():
-                matches = re.findall(r'ik ben (\w+)', text.lower())
-                print(matches[0])
-                message = "Hoi {}, ik ben Dad Bot".format(matches[0])
-                send_message(message, chat)
-            else:
-                print("matches nothing")
-            # send_message(text, chat)
+            # check_commands()
+            response = respond(text)
+            send_message(response, chat)
         except Exception as e:
             print(e)
 
 
+def respond(text):
+    message = ""
+    if "ik ben" in text.lower():
+        matches = re.findall(r'ik ben (\w+)', text, re.IGNORECASE)
+        # print(matches[0])
+        message = "Hoi {}, ik ben Dad Bot".format(matches[0])
+    if text == '/start':
+        print("start triggered")
+    return message
+
+
 def main():
+    triggers = pandas.read_csv('triggers.csv')
     last_update_id = None
     while True:
         updates = get_updates(last_update_id)
@@ -77,4 +85,15 @@ def main():
 
 
 if __name__ == '__main__':
+    triggers = {"arnhem": "Ja, arnhem is kut",
+                "Nijmegen": "Nijmegen is beste"}
+    # print(triggers)
+    sales = {'account': ['Jones LLC', 'Alpha Co', 'Blue Inc'],
+             'Jan': [150, 200, 50],
+             'Feb': [200, 210, 90],
+             'Mar': [140, 215, 95]}
+    triggers = pandas.DataFrame.from_dict(triggers, index=[0])  #columns=["trigger", "response"])
+    # triggers.loc[0] = "Ja, arnhem is kut"
+    print(triggers)
+    triggers.to_csv('triggers.csv')
     main()
