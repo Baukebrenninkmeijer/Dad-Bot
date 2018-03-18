@@ -7,7 +7,7 @@ import re
 import csv
 import os.path
 
-TOKEN = open('key.txt', 'r').read()
+TOKEN = open('key.txt', 'r').read().rstrip()
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 triggers = {}
 
@@ -65,22 +65,22 @@ def echo_all(updates):
 def respond(text):
     message = ""
     command = text.split(' ', 1)[0]
-    if command == '/start':
+    if command == '/start' or command == '/start@RU_Dad_bot':
         return "Hoi, ik ben Dad en je hebt me nu getriggerd. Je kan nieuwe trigger toevoegen met /add."
-    if command == '/add':
+    if command == '/add' or command == '/add@RU_Dad_bot':
         try:
             value = text.split(' ', 1)[1]
+            trigger, response = value.split(':', 1)
         except Exception as e:
             print("no keyword given\n{}".format(e))
             return "Add a new trigger by typing your trigger and response after /add, seperated by a colon (:)!"
-        trigger, response = value.split(':', 1)
         trigger = trigger.strip()
         response = response.strip()
         write_triggers(trigger, response)
         return "Trigger toegevoegd!\n"
 
     # Respond to deletion of trigger words
-    if command == '/delete':
+    if command == '/delete' or command == '/delete@RU_Dad_bot':
         value = text.split(' ', 1)[1]
         del triggers[value]
         write_triggers()
@@ -120,9 +120,12 @@ def main():
     last_update_id = None
     while True:
         updates = get_updates(last_update_id)
-        if len(updates["result"]) > 0:
-            last_update_id = get_last_update_id(updates) + 1
-            echo_all(updates)
+        if "result" in updates.keys():
+            if len(updates["result"]) > 0:
+                last_update_id = get_last_update_id(updates) + 1
+                echo_all(updates)
+        else:
+            print("Bot was not found\n{}".format(updates))
         time.sleep(0.5)
 
 
