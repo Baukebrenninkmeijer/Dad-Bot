@@ -84,6 +84,20 @@ def respond(text):
         value = text.split(' ', 1)[1]
         del triggers[value]
         write_triggers()
+        return '{} is verwijderd uit de triggers.'.format(value)
+
+    if command == '/triggers' or command == '/triggers@RU_Dad_bot':
+        try:
+            value = text.split(' ', 1)[1]
+            if value == "A":
+                for key in triggers.keys():
+                    message += "{}: {}\n".format(key, triggers[key])
+                return message
+        except Exception as e:
+            print(e)
+        for key in triggers.keys():
+            message += key + '\n'
+        return message
 
     # Respond to 'I am'
     if re.search(r'ik ben \w+', text, re.I):
