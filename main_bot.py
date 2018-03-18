@@ -5,12 +5,11 @@ import urllib
 import urllib.parse
 import re
 import csv
-import pandas
-
+import os.path
 
 TOKEN = open('key.txt', 'r').read()
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
-triggers = pandas.DataFrame()
+triggers = {}
 
 
 def get_url(url):
@@ -57,7 +56,6 @@ def echo_all(updates):
         try:
             text = update["message"]["text"]
             chat = update["message"]["chat"]["id"]
-            # check_commands()
             response = respond(text)
             send_message(response, chat)
         except Exception as e:
@@ -67,48 +65,58 @@ def echo_all(updates):
 def respond(text):
     message = ""
     command = text.split(' ', 1)[0]
-    # print(command)
     if command == '/start':
-        return "Hoi, ik ben Dad en je hebt me nu getriggerd"
+        return "Hoi, ik ben Dad en je hebt me nu getriggerd. Je kan nieuwe trigger toevoegen met /add."
     if command == '/add':
         try:
-            print("Command: {}".format(command))
             value = text.split(' ', 1)[1]
-            print("Value: {}".format(value))
-        except:
-            print("no keyword given")
-            return "Give a keyword and response after add"
+        except Exception as e:
+            print("no keyword given\n{}".format(e))
+            return "Add a new trigger by typing your trigger and response after /add, seperated by a colon (:)!"
         trigger, response = value.split(':', 1)
+        trigger = trigger.strip()
+        response = response.strip()
         write_triggers(trigger, response)
         return "Trigger toegevoegd!\n"
 
+    # Respond to deletion of trigger words
+    if command == '/delete':
+        value = text.split(' ', 1)[1]
+        del triggers[value]
+        write_triggers()
+
+    # Respond to 'I am'
     if re.search(r'ik ben \w+', text, re.I):
         matches = re.search(r'ik ben (\w+)', text, re.IGNORECASE)
         message += "Hoi {}, ik ben Dad Bot\n".format(matches.group(1))
-    for word in text.split(' '):
-        if word in triggers.keys():
-            message += triggers[word] + '\n'
+
+    # Respond to added triggers
     for word in triggers.keys():
-        if re.search(r'\b'+word+'\b', text, re.I):
+        regex = r'\b' + word + r'\b|\A'+word+r'\b '
+        if re.search(regex, text, re.I):
             message += triggers[word]
     return message
 
 
-def write_triggers(trigger, response):
-    triggers[trigger] = response
+def write_triggers(trigger='', response=''):
+    if trigger != '' and response != '':
+        triggers[trigger] = response
     with open('triggers.csv', 'w') as f:
-        [f.write('{0},{1}\n'.format(key, value)) for key, value in triggers.items()]
+        [f.write('{0};{1}\n'.format(key, value)) for key, value in triggers.items()]
 
 
 def read_triggers():
-    with open('triggers.csv', mode='r') as infile:
-        reader = csv.reader(infile)
-        for row in reader:
-            print(row)
-            triggers[row[0]] = row[1]
-
+    if os.path.isfile('triggers.csv'):
+        with open('triggers.csv', mode='r') as infile:
+            reader = csv.reader(infile, delimiter=';')
+            try:
+                for row in reader:
+                    triggers[row[0]] = row[1]
+            except Exception as e:
+                print("There was an error with reading the csv file.\n{}".format(e))
 
 def main():
+    read_triggers()
     last_update_id = None
     while True:
         updates = get_updates(last_update_id)
@@ -119,13 +127,4 @@ def main():
 
 
 if __name__ == '__main__':
-    triggers = {"arnhem": "Ja, arnhem is kut", "Nijmegen": "Nijmegen is beste", "test": "test"}
-    with open('triggers.csv', 'w') as f:
-        [f.write('{0},{1}\n'.format(key, value)) for key, value in triggers.items()]
-
-    with open('triggers.csv', mode='r') as infile:
-        reader = csv.reader(infile)
-        for row in reader:
-            triggers[row[0]] = row[1]
-    triggers["ik ben"] = "testerino"
     main()
