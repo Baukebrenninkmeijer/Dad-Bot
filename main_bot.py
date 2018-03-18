@@ -4,11 +4,13 @@ import time
 import urllib
 import urllib.parse
 import re
+import csv
 import pandas
 
 
 TOKEN = open('key.txt', 'r').read()
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
+triggers = pandas.DataFrame()
 
 
 def get_url(url):
@@ -64,17 +66,49 @@ def echo_all(updates):
 
 def respond(text):
     message = ""
-    if "ik ben" in text.lower():
-        matches = re.findall(r'ik ben (\w+)', text, re.IGNORECASE)
-        # print(matches[0])
-        message = "Hoi {}, ik ben Dad Bot".format(matches[0])
-    if text == '/start':
-        print("start triggered")
+    command = text.split(' ', 1)[0]
+    # print(command)
+    if command == '/start':
+        return "Hoi, ik ben Dad en je hebt me nu getriggerd"
+    if command == '/add':
+        try:
+            print("Command: {}".format(command))
+            value = text.split(' ', 1)[1]
+            print("Value: {}".format(value))
+        except:
+            print("no keyword given")
+            return "Give a keyword and response after add"
+        trigger, response = value.split(':', 1)
+        write_triggers(trigger, response)
+        return "Trigger toegevoegd!\n"
+
+    if re.search(r'ik ben \w+', text, re.I):
+        matches = re.search(r'ik ben (\w+)', text, re.IGNORECASE)
+        message += "Hoi {}, ik ben Dad Bot\n".format(matches.group(1))
+    for word in text.split(' '):
+        if word in triggers.keys():
+            message += triggers[word] + '\n'
+    for word in triggers.keys():
+        if re.search(r'\b'+word+'\b', text, re.I):
+            message += triggers[word]
     return message
 
 
+def write_triggers(trigger, response):
+    triggers[trigger] = response
+    with open('triggers.csv', 'w') as f:
+        [f.write('{0},{1}\n'.format(key, value)) for key, value in triggers.items()]
+
+
+def read_triggers():
+    with open('triggers.csv', mode='r') as infile:
+        reader = csv.reader(infile)
+        for row in reader:
+            print(row)
+            triggers[row[0]] = row[1]
+
+
 def main():
-    triggers = pandas.read_csv('triggers.csv')
     last_update_id = None
     while True:
         updates = get_updates(last_update_id)
@@ -85,15 +119,13 @@ def main():
 
 
 if __name__ == '__main__':
-    triggers = {"arnhem": "Ja, arnhem is kut",
-                "Nijmegen": "Nijmegen is beste"}
-    # print(triggers)
-    sales = {'account': ['Jones LLC', 'Alpha Co', 'Blue Inc'],
-             'Jan': [150, 200, 50],
-             'Feb': [200, 210, 90],
-             'Mar': [140, 215, 95]}
-    triggers = pandas.DataFrame.from_dict(triggers, index=[0])  #columns=["trigger", "response"])
-    # triggers.loc[0] = "Ja, arnhem is kut"
-    print(triggers)
-    triggers.to_csv('triggers.csv')
+    triggers = {"arnhem": "Ja, arnhem is kut", "Nijmegen": "Nijmegen is beste", "test": "test"}
+    with open('triggers.csv', 'w') as f:
+        [f.write('{0},{1}\n'.format(key, value)) for key, value in triggers.items()]
+
+    with open('triggers.csv', mode='r') as infile:
+        reader = csv.reader(infile)
+        for row in reader:
+            triggers[row[0]] = row[1]
+    triggers["ik ben"] = "testerino"
     main()
