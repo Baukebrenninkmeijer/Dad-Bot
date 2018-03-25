@@ -28,7 +28,11 @@ def get_updates(offset=None):
     url = URL + "getUpdates?timeout=100"
     if offset:
         url += "&offset={}".format(offset)
-    js = get_json_from_url(url)
+    js = False
+    try:
+        js = get_json_from_url(url)
+    except Exception as e:
+        print(e)
     return js
 
 def get_last_update_id(updates):
@@ -59,7 +63,7 @@ def echo_all(updates):
             response = respond(text)
             send_message(response, chat)
         except Exception as e:
-            print(e)
+            print("Error in echo all: {}".format(e))
 
 
 def respond(text):
@@ -94,7 +98,7 @@ def respond(text):
                     message += "{}: {}\n".format(key, triggers[key])
                 return message
         except Exception as e:
-            print(e)
+            print("No second argument for trigger command given: {}".format(e))
         for key in triggers.keys():
             message += key + '\n'
         return message
@@ -134,12 +138,13 @@ def main():
     last_update_id = None
     while True:
         updates = get_updates(last_update_id)
-        if "result" in updates.keys():
-            if len(updates["result"]) > 0:
-                last_update_id = get_last_update_id(updates) + 1
-                echo_all(updates)
-        else:
-            print("Bot was not found\n{}".format(updates))
+        if updates:
+            if "result" in updates.keys():
+                if len(updates["result"]) > 0:
+                    last_update_id = get_last_update_id(updates) + 1
+                    echo_all(updates)
+            else:
+                print("Bot was not found\n{}".format(updates))
         time.sleep(0.5)
 
 
