@@ -5,6 +5,7 @@ import urllib
 import urllib.parse
 import re
 import csv
+import string
 import os.path
 
 TOKEN = open('key.txt', 'r').read().rstrip()
@@ -35,6 +36,7 @@ def get_updates(offset=None):
         print(e)
     return js
 
+
 def get_last_update_id(updates):
     update_ids = []
     for update in updates["result"]:
@@ -55,12 +57,13 @@ def send_message(text, chat_id):
     url = URL + "sendMessage?text={}&chat_id={}".format(text, chat_id)
     get_url(url)
 
+
 def echo_all(updates):
     for update in updates["result"]:
         try:
             text = update["message"]["text"]
             chat = update["message"]["chat"]["id"]
-            response = respond(text)
+            response = respond(text).encode("utf-8")
             send_message(response, chat)
         except Exception as e:
             print("Error in echo all: {}".format(e))
@@ -68,9 +71,12 @@ def echo_all(updates):
 
 def respond(text):
     message = ""
+    rem_punc = re.compile('[%s]' % re.escape(string.punctuation))
     command = text.split(' ', 1)[0]
+
     if command == '/start' or command == '/start@RU_Dad_bot':
         return "Hoi, ik ben Dad en je hebt me nu getriggerd. Je kan nieuwe trigger toevoegen met /add."
+
     if command == '/add' or command == '/add@RU_Dad_bot':
         try:
             value = text.split(' ', 1)[1]
@@ -78,7 +84,9 @@ def respond(text):
         except Exception as e:
             print("no keyword given\n{}".format(e))
             return "Add a new trigger by typing your trigger and response after /add, seperated by a colon (:)!"
-        trigger = trigger.strip()
+        trigger = rem_punc.sub('', trigger.strip())
+        # if trigger in triggers.keys():
+        #     return "Wollah deze key bestaat al!\n"
         response = response.strip()
         write_triggers(trigger, response)
         return "Trigger toegevoegd!\n"
@@ -93,12 +101,13 @@ def respond(text):
     if command == '/triggers' or command == '/triggers@RU_Dad_bot':
         try:
             value = text.split(' ', 1)[1]
-            if value == "A":
+            if value == "all":
                 for key in triggers.keys():
                     message += "{}: {}\n".format(key, triggers[key])
                 return message
         except Exception as e:
-            print("No second argument for trigger command given: {}".format(e))
+            pass
+            # print("No second argument for trigger command given: {}".format(e))
         for key in triggers.keys():
             message += key + '\n'
         return message
@@ -109,8 +118,9 @@ def respond(text):
         message += "Hoi {}, ik ben Dad Bot\n".format(matches.group(1))
 
     # Respond to added triggers
+    text = rem_punc.sub('', text)
     for word in triggers.keys():
-        regex = r'\b' + word + r'\b|\A'+word+r'\b '
+        regex = r'\b' + word + r'\b|\A' + word + r'\b '
         if re.search(regex, text, re.I):
             message += triggers[word]
     return message
@@ -132,6 +142,7 @@ def read_triggers():
                     triggers[row[0]] = row[1]
             except Exception as e:
                 print("There was an error with reading the csv file.\n{}".format(e))
+
 
 def main():
     read_triggers()
