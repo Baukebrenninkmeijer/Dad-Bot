@@ -7,6 +7,13 @@ import re
 import csv
 import string
 import os.path
+import sys
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
+scope = ['https://spreadsheets.google.com/feeds',
+         'https://www.googleapis.com/auth/drive']
+creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
 
 TOKEN = open('key.txt', 'r').read().rstrip()
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
@@ -49,7 +56,7 @@ def get_last_chat_id_and_text(updates):
     last_update = num_updates - 1
     text = updates["result"][last_update]["message"]["text"]
     chat_id = updates["result"][last_update]["message"]["chat"]["id"]
-    return (text, chat_id)
+    return text, chat_id
 
 
 def send_message(text, chat_id):
@@ -71,11 +78,11 @@ def echo_all(updates):
 
 def respond(text):
     message = ""
-    rem_punc = re.compile('[%s]' % re.escape(string.punctuation))
+    remove_punctuation = re.compile('[%s]' % re.escape(string.punctuation))
     command = text.split(' ', 1)[0]
 
     if command == '/start' or command == '/start@RU_Dad_bot':
-        return "Hoi, ik ben Dad en je hebt me nu getriggerd. Je kan nieuwe trigger toevoegen met /add."
+        return "Hoi, ik ben Henry en je hebt me nu getriggerd. Je kan nieuwe trigger toevoegen met /add."
 
     if command == '/add' or command == '/add@RU_Dad_bot':
         try:
@@ -84,7 +91,7 @@ def respond(text):
         except Exception as e:
             print("no keyword given\n{}".format(e))
             return "Add a new trigger by typing your trigger and response after /add, seperated by a colon (:)!"
-        trigger = rem_punc.sub('', trigger.strip())
+        trigger = remove_punctuation.sub('', trigger.strip())
         # if trigger in triggers.keys():
         #     return "Wollah deze key bestaat al!\n"
         response = response.strip()
@@ -115,10 +122,10 @@ def respond(text):
     # Respond to 'I am'
     if re.search(r'ik ben \w+', text, re.I):
         matches = re.search(r'ik ben (\w+)', text, re.IGNORECASE)
-        message += "Hoi {}, ik ben Dad Bot\n".format(matches.group(1))
+        message += "Hoi {}, ik ben Henry Bot\n".format(matches.group(1))
 
     # Respond to added triggers
-    text = rem_punc.sub('', text)
+    text = remove_punctuation.sub('', text)
     for word in triggers.keys():
         regex = r'\b' + word + r'\b|\A' + word + r'\b '
         if re.search(regex, text, re.I):
@@ -134,29 +141,43 @@ def write_triggers(trigger='', response=''):
 
 
 def read_triggers():
-    if os.path.isfile('triggers.csv'):
-        with open('triggers.csv', mode='r') as infile:
-            reader = csv.reader(infile, delimiter=';')
-            try:
-                for row in reader:
-                    triggers[row[0]] = row[1]
-            except Exception as e:
-                print("There was an error with reading the csv file.\n{}".format(e))
+    client = gspread.authorize(creds)
+
+    sheet = client.open('HenryBot commands').sheet1
+
+    henry_commands = sheet.get_all_records()
+    # print(henry_commands)
+    for trigger in henry_commands:
+        triggers[trigger.get('key')] = trigger.get('value')
+
+    # if os.path.isfile('triggers.csv'):
+    #     with open('triggers.csv', mode='r') as infile:
+    #         reader = csv.reader(infile, delimiter=';')
+    #         try:
+    #             for row in reader:
+    #                 triggers[row[0]] = row[1]
+    #         except Exception as e:
+    #             print("There was an error with reading the csv file.\n{}".format(e))
 
 
 def main():
     read_triggers()
     last_update_id = None
     while True:
-        updates = get_updates(last_update_id)
-        if updates:
-            if "result" in updates.keys():
-                if len(updates["result"]) > 0:
-                    last_update_id = get_last_update_id(updates) + 1
-                    echo_all(updates)
-            else:
-                print("Bot was not found\n{}".format(updates))
-        time.sleep(0.5)
+        try:
+            updates = get_updates(last_update_id)
+            if updates:
+                if "result" in updates.keys():
+                    if len(updates["result"]) > 0:
+                        last_update_id = get_last_update_id(updates) + 1
+                        echo_all(updates)
+                else:
+                    print("Bot was not found\n{}".format(updates))
+            time.sleep(0.5)
+        except Exception as e:
+            print(e)
+
+            os.execv(sys.executable, ['nohup', 'python3', 'main.py', '&'] + sys.argv)
 
 
 if __name__ == '__main__':
