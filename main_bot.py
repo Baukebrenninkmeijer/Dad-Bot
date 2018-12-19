@@ -147,6 +147,7 @@ def add_triggers(trigger, response):
     if trigger != '' and response != '':
         triggers[trigger] = response
         sheet.append_row([trigger, response])
+    read_triggers()
 
 
 def read_triggers():
