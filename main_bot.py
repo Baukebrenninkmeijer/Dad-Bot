@@ -18,6 +18,8 @@ creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', sco
 TOKEN = open('key.txt', 'r').read().rstrip()
 URL = "https://api.telegram.org/bot{}/".format(TOKEN)
 triggers = {}
+client = gspread.authorize(creds)
+sheet = client.open('HenryBot commands').sheet1
 
 
 def get_url(url):
@@ -67,13 +69,13 @@ def send_message(text, chat_id):
 
 def echo_all(updates):
     for update in updates["result"]:
-        try:
+        # try:
             text = update["message"]["text"]
             chat = update["message"]["chat"]["id"]
             response = respond(text).encode("utf-8")
             send_message(response, chat)
-        except Exception as e:
-            print("Error in echo all: {}".format(e))
+        # except Exception as e:
+        #     print("Error in echo all: {}".format(e))
 
 
 def respond(text):
@@ -95,14 +97,14 @@ def respond(text):
         # if trigger in triggers.keys():
         #     return "Wollah deze key bestaat al!\n"
         response = response.strip()
-        write_triggers(trigger, response)
+        add_triggers(trigger, response)
         return "Trigger toegevoegd!\n"
 
     # Respond to deletion of trigger words
     if command == '/delete' or command == '/delete@RU_Dad_bot':
         value = text.split(' ', 1)[1]
         del triggers[value]
-        write_triggers()
+        overwrite_remote_trigger_with_local()
         return '{} is verwijderd uit de triggers.'.format(value)
 
     if command == '/triggers' or command == '/triggers@RU_Dad_bot':
@@ -126,6 +128,7 @@ def respond(text):
 
     # Respond to added triggers
     text = remove_punctuation.sub('', text)
+    print(text, triggers)
     for word in triggers.keys():
         regex = r'\b' + word + r'\b|\A' + word + r'\b '
         if re.search(regex, text, re.I):
@@ -133,31 +136,25 @@ def respond(text):
     return message
 
 
-def write_triggers(trigger='', response=''):
+def overwrite_remote_trigger_with_local():
+    sheet.clear()
+    sheet.append_row(['trigger', 'response'])
+    for key, value in triggers.items():
+        sheet.append_row([key, value])
+
+
+def add_triggers(trigger, response):
     if trigger != '' and response != '':
         triggers[trigger] = response
-    with open('triggers.csv', 'w') as f:
-        [f.write('{0};{1}\n'.format(key, value)) for key, value in triggers.items()]
+        sheet.append_row([trigger, response])
 
 
 def read_triggers():
-    client = gspread.authorize(creds)
-
-    sheet = client.open('HenryBot commands').sheet1
-
     henry_commands = sheet.get_all_records()
     # print(henry_commands)
+    print(henry_commands)
     for trigger in henry_commands:
-        triggers[trigger.get('key')] = trigger.get('value')
-
-    # if os.path.isfile('triggers.csv'):
-    #     with open('triggers.csv', mode='r') as infile:
-    #         reader = csv.reader(infile, delimiter=';')
-    #         try:
-    #             for row in reader:
-    #                 triggers[row[0]] = row[1]
-    #         except Exception as e:
-    #             print("There was an error with reading the csv file.\n{}".format(e))
+        triggers[trigger.get('trigger')] = trigger.get('response')
 
 
 def main():
