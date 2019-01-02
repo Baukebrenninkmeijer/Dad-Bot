@@ -175,7 +175,7 @@ def main():
         except Exception as e:
             print(e)
 
-            os.execv(sys.executable, ['nohup', 'python3', 'main.py', '&'] + sys.argv)
+ #           os.execv(sys.executable, ['nohup', 'python3', 'main.py', '&'] + sys.argv)
 
 
 if __name__ == '__main__':
