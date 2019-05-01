@@ -128,7 +128,6 @@ def respond(text):
 
     # Respond to added triggers
     text = remove_punctuation.sub('', text)
-    print(text, triggers)
     for word in triggers.keys():
         regex = r'\b' + word + r'\b|\A' + word + r'\b '
         if re.search(regex, text, re.I):
