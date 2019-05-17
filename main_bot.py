@@ -152,8 +152,6 @@ def add_triggers(trigger, response):
 
 def read_triggers():
     henry_commands = sheet.get_all_records()
-    # print(henry_commands)
-    print(henry_commands)
     for trigger in henry_commands:
         triggers[trigger.get('trigger')] = trigger.get('response')
 
