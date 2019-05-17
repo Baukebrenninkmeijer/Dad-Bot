@@ -6,3 +6,7 @@ triggers.csv
 nohup.out
 
 credentials\.json
+
+\.ipynb_checkpoints/
+
+config\.ini
