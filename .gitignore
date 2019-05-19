@@ -14,3 +14,9 @@ config\.ini
 __pycache__/
 
 commands\.csv
+
+scratch\.sql
+
+data_transform\.ipynb
+
+henry_temp_Response\.tsv

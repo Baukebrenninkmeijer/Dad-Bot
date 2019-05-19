@@ -56,7 +56,7 @@ def notebook2script(fname=None, allFiles=None, upTo=None):
 def notebook2scriptSingle(fname):
     "Finds cells starting with `#export` and puts them into a new module"
     fname = Path(fname)
-    fname_out = f'{fname.name.split(".")[0][2:]}.py'
+    fname_out = f'{fname.name.split(".")[0]}.py'
     main_dic = json.load(open(fname, 'r', encoding='utf-8'))
     code_cells = [c for c in main_dic['cells'] if is_export(c)]
     module = f'''
@@ -69,7 +69,7 @@ def notebook2scriptSingle(fname):
     for cell in code_cells: module += ''.join(cell['source'][1:]) + '\n\n\n'
     # remove trailing spaces
     module = re.sub(r' +$', '', module, flags=re.MULTILINE)
-    output_path = fname.parent / 'exp' / fname_out
+    output_path = fname.parent / fname_out
     open(output_path, 'w', encoding='utf-8').write(module[:-2])
     print(f"Converted {fname} to {output_path}")
 
