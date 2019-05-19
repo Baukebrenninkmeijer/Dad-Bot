@@ -7,6 +7,7 @@
 import re
 import lib
 import logging
+import pandas as pd
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 
@@ -75,8 +76,9 @@ class HenryBot:
 
         # Respond to added triggers
         for trigger, row in self.triggers.iterrows():
-            regex = r'\b' + trigger + r'\b|\A' + trigger + r'\b '
+            regex = r'(\b|\A)\S{0,1}' + trigger + '\S{0,1}(\b){0,1}'
             if re.search(regex, text, re.I):
+                assert isinstance(self.triggers.loc[trigger], pd.Series), f'Trigger query response is not a series. Likely duplicate trigger.'
                 message += self.triggers.loc[trigger, 'response'] + '\n'
 
         message = message.format(user=user.first_name)
@@ -96,9 +98,6 @@ def error(update, context):
 
 def main():
     """Start the bot."""
-    # Create the Updater and pass it your bot's token.
-    # Make sure to set use_context=True to use the new context based callbacks
-    # Post version 12 this will no longer be necessary
     henry_bot = HenryBot()
     updater = Updater(api_token, use_context=True)
 
