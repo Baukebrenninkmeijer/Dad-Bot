@@ -41,21 +41,20 @@ class HenryBot:
 
     def add(self, update, context):
         try:
-            value = update.messagetext.split(' ', 1)[1]
+            value = update.message.text.split(' ', 1)[1]
             trigger, response = map(str.strip, value.split(':', 1))
             self.triggers.loc[trigger] = [response]
-            self.update_triggers()
             update.message.reply_text(f'\'{trigger}\' added to the triggers')
+            self.update_triggers()
         except IndexError:
-            update.message.reply_text(f"No correctly formatted trigger found. Add a new trigger by typing /add <trigger>:<response>!")
+            update.message.reply_text(f"No correctly formatted trigger found. Add a new trigger by typing /add <trigger>:<response>")
 
     def delete(self, update, context):
         try:
             trigger = update.message.text.split(' ', 1)[1]
             self.triggers = self.triggers.drop(trigger)
-            self.update_triggers()
             update.message.reply_text(f'\'{trigger}\' deleted from triggers.')
-
+            self.update_triggers()
         except IndexError:
             update.message.reply_text(f'Please add a trigger to remove. Format is /delete <trigger>')
 
