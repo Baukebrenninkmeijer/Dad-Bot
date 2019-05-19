@@ -10,3 +10,5 @@ credentials\.json
 \.ipynb_checkpoints/
 
 config\.ini
+
+__pycache__/
