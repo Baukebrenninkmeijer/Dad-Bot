@@ -4,9 +4,6 @@
 #################################################
 # file to edit: dev_nb/bot.ipynb
 
-from telegram.ext import Updater, InlineQueryHandler, CommandHandler
-import pandas as pd
-import requests
 import re
 import lib
 import logging
@@ -28,6 +25,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class HenryBot:
     def __init__(self):
         self.db_conn = lib.DatabaseIO()
@@ -44,7 +42,7 @@ class HenryBot:
     def add(self, update, context):
         try:
             value = update.messagetext.split(' ', 1)[1]
-            trigger, response = map(strip, value.split(':', 1))
+            trigger, response = map(str.strip, value.split(':', 1))
             self.triggers.loc[trigger] = [response]
             self.update_triggers()
             update.message.reply_text(f'\'{trigger}\' added to the triggers')
@@ -62,11 +60,8 @@ class HenryBot:
             update.message.reply_text(f'Please add a trigger to remove. Format is /delete <trigger>')
 
     def get_triggers(self, update, context):
-        message = ''
+        # respond with only the triggers cause the responses give a message size error
         update.message.reply_text('\n'.join(self.triggers.index.tolist()))
-#         for trigger, row in self.triggers.iterrows():
-#             message += f'{trigger}: {row.response}\n'
-#         update.message.reply_text(message)
 
     def triggered(self, update, context):
         """Echo the user message."""
@@ -81,7 +76,6 @@ class HenryBot:
 
         # Respond to added triggers
         for trigger, row in self.triggers.iterrows():
-            response = row['response']
             regex = r'\b' + trigger + r'\b|\A' + trigger + r'\b '
             if re.search(regex, text, re.I):
                 message += self.triggers.loc[trigger, 'response'] + '\n'
