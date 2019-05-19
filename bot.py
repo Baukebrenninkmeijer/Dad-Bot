@@ -63,9 +63,10 @@ class HenryBot:
 
     def get_triggers(self, update, context):
         message = ''
-        for trigger, row in self.triggers.iterrows():
-            message += f'{trigger}: {row.response}\n'
-        update.message.reply_text(message)
+        update.message.reply_text('\n'.join(self.triggers.index.tolist()))
+#         for trigger, row in self.triggers.iterrows():
+#             message += f'{trigger}: {row.response}\n'
+#         update.message.reply_text(message)
 
     def triggered(self, update, context):
         """Echo the user message."""
