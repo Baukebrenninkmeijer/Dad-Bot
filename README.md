@@ -6,7 +6,7 @@ Henry's triggers are global, meaning that you can see the triggers of other chat
 This bot can be found on [telegram](https://t.me/HenryBot).
 
 The repo is build up like this:
-I develop the bot in bot.ipynb, because I think it is quite handy. Using the notebook2script.py (credits to Jeremy Howard from fast.ai) this notebook is converted to bot.py. To get a clear overview of the working components, I advise you to look at this. Lib.py contains some useful additional functions like database access.
+I develop the bot in bot.ipynb, because I think it is quite handy. Using the notebook2script.py (credits to Jeremy Howard from fast.ai) this notebook is converted to bot.py. To get a clear overview of all the components, I advise you to look at bot.py. Lib.py contains some useful additional functions like database access.
 
 If you would like to run this project, you should have a config.ini containing two things:
 
