@@ -7,6 +7,7 @@
 import re
 import lib
 import logging
+import time
 import pandas as pd
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -89,6 +90,12 @@ class HenryBot:
     def help(update, context):
         """Send a message when the command /help is issued."""
         update.message.reply_text('Help!')
+        time.sleep(3)
+        update.message.reply_text('Just kidding! HAHAHAHAHAHA')
+        update.message.reply_text('''Add triggers by doing: /add <trigger>:<respons>
+Remove triggers by doing: /delete <trigger>
+Get all triggers by doing: /triggers\
+        ''')
 
 
 def error(update, context):
