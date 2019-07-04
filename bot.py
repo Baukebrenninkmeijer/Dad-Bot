@@ -12,14 +12,6 @@ import pandas as pd
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 
-"""
-Simple Bot to reply to Telegram messages.
-
-First, a few handler functions are defined. Then, those functions are passed to
-the Dispatcher and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-"""
-
 api_token = lib.config['telegram']['api_token']
 
 # Enable logging
@@ -35,13 +27,14 @@ class HenryBot:
 
     @staticmethod
     def start(update, context):
-        """Send a message when the command /start is issued."""
+        """Start interacting with Henry!"""
         update.message.reply_text('Hi! I am HenryBot and you\'ve triggered me. You can add new triggers using /add. Get more information using /help')
 
     def update_triggers(self):
         self.db_conn.write_data(self.triggers, 'triggers')
 
     def add(self, update, context):
+        """Add a new trigger"""
         try:
             value = update.message.text.split(' ', 1)[1]
             trigger, response = map(str.strip, value.split(':', 1))
@@ -52,6 +45,7 @@ class HenryBot:
             update.message.reply_text(f"No correctly formatted trigger found. Add a new trigger by typing /add <trigger>:<response>")
 
     def delete(self, update, context):
+        """Delete a certain trigger from the list of triggers."""
         try:
             trigger = update.message.text.split(' ', 1)[1]
             self.triggers = self.triggers.drop(trigger)
@@ -61,11 +55,12 @@ class HenryBot:
             update.message.reply_text(f'Please add a trigger to remove. Format is /delete <trigger>')
 
     def get_triggers(self, update, context):
+        """Send the available triggers"""
         # respond with only the triggers cause the responses give a message size error
         update.message.reply_text('\n'.join(self.triggers.index.tolist()))
 
     def triggered(self, update, context):
-        """Echo the user message."""
+        """Respond with the response associated with the trigger."""
         text = update.message.text
         user = update.message.from_user
         message = ''
@@ -127,6 +122,7 @@ def main():
     # Start the Bot
     updater.start_polling()
     updater.idle()
+
 
 
 if __name__ == '__main__':
